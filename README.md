@@ -1,12 +1,10 @@
 # claude-security-configurations
 Enhanced security configurations for Claude on **MacOS**
 
-## usage: 
-> **Note:** Claude Code reads `settings.json` only (the .jsonc file is for documentation purposes only)
-> 
-> copy 'settings.json' to ~/.claude/settings.json
-> 
-> restart Claude and Claude CLI
+## Usage: 
+- Copy 'settings.json' to ~/.claude/settings.json
+- Restart Claude and Claude CLI
+- **Note:** Claude Code reads `settings.json` only (the .jsonc file is for documentation purposes only)
 
 ## Default vs. Enhanced Claude Security: What Actually Changes
 
