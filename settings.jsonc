@@ -1,0 +1,363 @@
+// ~/.claude/settings-comments.jsonc
+// ─────────────────────────────────────────────────────────────────────────────
+// CLAUDE CODE SECURITY CONFIGURATION — ANNOTATED REFERENCE
+// ─────────────────────────────────────────────────────────────────────────────
+// This file is for documentation purposes only.
+// Claude Code reads settings.json — NOT this file.
+// Keep this in sync manually when settings.json changes.
+//
+// Two enforcement layers are used throughout:
+//   1. permissions.deny  → model-level: Claude will refuse to attempt the action
+//   2. sandbox.filesystem → OS-level: the kernel blocks it even if the model tries
+//
+// Using both layers is intentional defense-in-depth. A prompt injection attack
+// that deceives the model still hits the sandbox wall.
+// ─────────────────────────────────────────────────────────────────────────────
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+
+  "permissions": {
+    "deny": [
+
+      // ── 1. SSH KEYS & REMOTE ACCESS ───────────────────────────────────────
+      // Private keys and SSH config are the keys to the kingdom for remote
+      // access. Read access alone is sufficient to exfiltrate them.
+      "Read(~/.ssh/**)",
+      "Edit(~/.ssh/**)",
+      "Write(~/.ssh/**)",
+
+      // ── 2. CLOUD PROVIDER CREDENTIALS ────────────────────────────────────
+      // AWS, Azure, and GCP store long-lived tokens and service account keys
+      // in these directories. Exposure can mean full cloud account takeover.
+      "Read(~/.aws/**)",
+      "Read(~/.azure/**)",
+      "Read(~/.config/gcloud/**)",
+      "Read(~/.config/azure/**)",
+
+      // ── 3. GIT CREDENTIALS & CONFIG ──────────────────────────────────────
+      // Git credential stores often contain PATs with repo read/write access.
+      // Blocking config edits prevents silent redirection of push targets.
+      "Read(~/.gitconfig)",
+      "Read(~/.git-credentials)",
+      "Read(~/.config/git/credentials)",
+      "Read(~/.config/git/config)",
+      "Read(**/.git/config)",
+      "Edit(~/.gitconfig)",
+      "Edit(~/.git-credentials)",
+      "Write(~/.git-credentials)",
+
+      // ── 4. CONTAINER & ORCHESTRATION SECRETS ─────────────────────────────
+      // Docker config stores registry auth tokens. Kubeconfig grants cluster
+      // access. Helm can store chart repository credentials.
+      "Read(~/.docker/config.json)",
+      "Read(~/.kube/**)",
+      "Read(~/.config/helm/**)",
+      "Read(~/.helm/**)",
+
+      // ── 5. PACKAGE MANAGER TOKENS ─────────────────────────────────────────
+      // These files store registry auth tokens, often with publish rights.
+      // A leaked npm token can be used to push malicious packages.
+      "Read(~/.npmrc)",
+      "Read(~/.cargo/credentials.toml)",
+      "Read(~/.gem/credentials)",
+      "Read(~/.pypirc)",
+      "Read(~/.composer/auth.json)",
+      "Read(~/.gradle/gradle.properties)",
+      "Read(~/.m2/settings.xml)",
+      "Read(~/.config/pip/**)",
+
+      // ── 6. PASSWORD MANAGERS & VAULTS ────────────────────────────────────
+      // 1Password, Bitwarden, and Vault store local session tokens that can
+      // be used to unlock the full credential store.
+      "Read(~/.config/op/**)",
+      "Read(~/.config/bw/**)",
+      "Read(~/.vault-token)",
+      "Read(~/.config/vault/**)",
+
+      // ── 7. TLS / PKI CERTIFICATES & PRIVATE KEYS ─────────────────────────
+      // Private key material in any format. Applied as a wildcard across the
+      // entire filesystem — not just home directory — to catch project-local
+      // certs and keys that developers sometimes store in repos.
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)",
+      "Read(**/*.crt)",
+      "Read(**/*.cer)",
+      "Read(**/*.der)",
+
+      // ── 8. SHELL HISTORY ──────────────────────────────────────────────────
+      // Shell history frequently contains plaintext credentials passed as
+      // CLI arguments (e.g., curl -H "Authorization: Bearer <token>").
+      "Read(~/.bash_history)",
+      "Read(~/.zsh_history)",
+      "Read(~/.history)",
+      "Read(~/.local/share/fish/fish_history)",
+
+      // ── 9. BROWSER DATA ───────────────────────────────────────────────────
+      // Browser profiles contain saved passwords, session cookies, and OAuth
+      // tokens. Chrome extension storage includes MetaMask encrypted vaults.
+      "Read(~/Library/Application Support/Google/Chrome/**)",
+      "Read(~/Library/Application Support/Microsoft Edge/**)",
+      "Read(~/Library/Application Support/Firefox/**)",
+      "Read(~/Library/Safari/**)",
+
+      // ── 10. CI/CD & HOSTING PROVIDER TOKENS ──────────────────────────────
+      // GitHub CLI, GitLab, Fly.io, Heroku, Netlify, and Vercel all store
+      // access tokens locally. Exposure can allow pipeline or deployment
+      // manipulation.
+      "Read(~/.config/gh/**)",
+      "Read(~/.config/glab/**)",
+      "Read(~/.fly/**)",
+      "Read(~/.config/fly/**)",
+      "Read(~/.config/heroku/**)",
+      "Read(~/.config/netlify/**)",
+      "Read(~/.config/vercel/**)",
+
+      // ── 11. INFRASTRUCTURE-AS-CODE SECRETS ───────────────────────────────
+      // Terraform stores provider tokens (AWS, Azure, etc.) in these files.
+      // Exposure allows silent infrastructure changes.
+      "Read(~/.terraformrc)",
+      "Read(~/.terraform.d/**)",
+
+      // ── 12. DATABASE CREDENTIALS ─────────────────────────────────────────
+      // PostgreSQL, MySQL, and MongoDB store connection credentials in these
+      // files, sometimes in plaintext.
+      "Read(~/.pgpass)",
+      "Read(~/.my.cnf)",
+      "Read(~/.mylogin.cnf)",
+      "Read(~/.mongosh/**)",
+      "Read(~/.config/mongorc.js)",
+
+      // ── 13. GPG / KEYCHAIN ────────────────────────────────────────────────
+      // GPG keyring contains private signing keys. macOS Keychain stores
+      // Wi-Fi passwords, app tokens, and certificates.
+      "Read(~/.gnupg/**)",
+      "Read(~/.netrc)",
+      "Read(~/Library/Keychains/**)",
+
+      // ── 14. ENVIRONMENT FILES & SECRET NAMING PATTERNS ───────────────────
+      // Wildcard rules to catch .env files, secrets directories, and files
+      // with credential/secret in the name — regardless of location.
+      // This is a broad net for developer secrets that don't have a fixed path.
+      "Read(**/.env*)",
+      "Read(**/secrets/**)",
+      "Read(**/*credential*)",
+      "Read(**/*secret*)",
+
+      // ── 15. CRYPTOCURRENCY WALLETS & KEYS ────────────────────────────────
+      // Unlike most credentials, crypto key material cannot be revoked.
+      // A drained wallet is an unrecoverable loss. Coverage includes:
+      //   - Bitcoin Core wallet files
+      //   - Ethereum Geth keystore
+      //   - Solana CLI keypair (~/.config/solana/id.json)
+      //   - Hardware wallet software data (Ledger, Trezor)
+      //   - Common seed phrase / mnemonic file naming patterns
+      "Read(~/Library/Application Support/Bitcoin/**)",
+      "Read(~/Library/Ethereum/**)",
+      "Read(~/.config/solana/**)",
+      "Read(~/.ethereum/**)",
+      "Read(~/.bitcoin/**)",
+      "Read(**/keystore/**)",
+      "Read(**/*.wallet)",
+      "Read(**/*.seed)",
+      "Read(**/*mnemonic*)",
+      "Read(**/*seed_phrase*)",
+      "Read(~/Library/Application Support/Ledger/**)",
+      "Read(~/Library/Application Support/Trezor/**)",
+
+      // ── 16. macOS SYSTEM INTEGRITY ────────────────────────────────────────
+      // LaunchAgents are a common persistence mechanism for malware.
+      // osascript (AppleScript) can interact with the UI and bypass prompts.
+      // launchctl can load/unload system services.
+      "Read(~/Library/LaunchAgents/**)",
+      "Bash(launchctl:*)",
+      "Bash(osascript:*)",
+
+      // ── 17. CLAUDE CONFIGURATION SELF-MODIFICATION ────────────────────────
+      // Prevents Claude from silently modifying its own permissions, hooks,
+      // or system prompt — a critical containment boundary.
+      "Edit(~/.claude/settings.json)",
+      "Write(~/.claude/settings.json)",
+      "Edit(~/.claude/CLAUDE.md)",
+      "Write(~/.claude/CLAUDE.md)",
+      "Edit(~/.claude/hooks/**)",
+      "Write(~/.claude/hooks/**)",
+
+      // ── 18. SHELL PROFILE MODIFICATION ───────────────────────────────────
+      // Shell profiles execute on every new terminal session. Modification
+      // is a classic persistence and environment hijacking vector.
+      "Edit(~/.zshrc)",
+      "Edit(~/.zshenv)",
+      "Edit(~/.zprofile)",
+      "Edit(~/.bashrc)",
+      "Edit(~/.bash_profile)",
+      "Edit(~/.profile)",
+      "Edit(~/.config/fish/config.fish)",
+
+      // ── 19. DESTRUCTIVE SHELL COMMANDS ───────────────────────────────────
+      // Hard denial of commands that cause irreversible data loss.
+      // rm -rf, dd (disk overwrite), mkfs (reformat), shred (secure delete).
+      "Bash(rm -rf:*)",
+      "Bash(rm -r:*)",
+      "Bash(rmdir:*)",
+      "Bash(dd:*)",
+      "Bash(mkfs:*)",
+      "Bash(shred:*)",
+
+      // ── 20. PRIVILEGE ESCALATION ─────────────────────────────────────────
+      // Prevents Claude from acquiring root or elevated privileges.
+      // chmod 777 is included as it is commonly used to weaken file security.
+      "Bash(sudo:*)",
+      "Bash(su:*)",
+      "Bash(doas:*)",
+      "Bash(chown:*)",
+      "Bash(chmod 777:*)",
+
+      // ── 21. NETWORK EXFILTRATION ─────────────────────────────────────────
+      // Hard-denies raw socket tools (nc/ncat) and silent file transfer
+      // tools (scp/rsync) that could be used to exfiltrate data.
+      // curl, wget, and ssh are moved to "ask" rather than denied outright,
+      // as they have legitimate development uses.
+      "Bash(nc:*)",
+      "Bash(ncat:*)",
+      "Bash(scp:*)",
+      "Bash(rsync:*)",
+      "WebFetch",
+
+      // ── 22. CODE INJECTION PATTERNS ──────────────────────────────────────
+      // Inline execution via interpreter flags is a common prompt injection
+      // technique. Denying these one-liner patterns removes a significant
+      // execution surface.
+      "Bash(python -c:*)",
+      "Bash(python3 -c:*)",
+      "Bash(node -e:*)",
+      "Bash(perl -e:*)",
+      "Bash(ruby -e:*)",
+      "Bash(bash -c:*)",
+      "Bash(sh -c:*)",
+      "Bash(eval:*)",
+
+      // ── 23. DANGEROUS GIT OPERATIONS ─────────────────────────────────────
+      // Force push can permanently destroy remote history.
+      // --no-verify bypasses pre-commit hooks (security scanners, linters).
+      // All git push operations require explicit approval via "ask" below.
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git commit --no-verify:*)",
+      "Bash(git commit -n:*)"
+    ],
+
+    // ── REQUIRE APPROVAL (ask) ────────────────────────────────────────────────
+    // These commands have legitimate uses but carry enough risk to warrant
+    // a human confirmation step before execution.
+    "ask": [
+      "Bash(curl:*)",          // HTTP requests — could exfiltrate data
+      "Bash(wget:*)",          // File downloads — could fetch malicious payloads
+      "Bash(ssh:*)",           // Remote shell access
+      "Bash(export:*)",        // Environment variable mutation
+      "Bash(git push:*)",      // All pushes require approval (force push is denied above)
+      "Bash(npm install:*)",   // Unvetted package installation
+      "Bash(pip install:*)",   // Unvetted package installation
+      "Bash(pip3 install:*)",  // Unvetted package installation
+      "Bash(cargo install:*)", // Unvetted package installation
+      "Bash(gem install:*)",   // Unvetted package installation
+      "Bash(docker run:*)",    // Arbitrary container execution
+      "Bash(docker pull:*)"   // Pulling unvetted images
+    ]
+  },
+
+  // ── SANDBOX (OS-LEVEL ENFORCEMENT) ───────────────────────────────────────
+  // The sandbox operates at the kernel level, independent of the model.
+  // Even if a prompt injection fools Claude into attempting a denied action,
+  // the sandbox blocks it at the OS layer.
+  //
+  // failIfUnavailable: true  → fail loudly if sandbox can't be applied,
+  //                            rather than silently running unsandboxed.
+  // allowUnsandboxedCommands: false → no escape hatch.
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "filesystem": {
+
+      // denyRead mirrors the high-value read denials from permissions above.
+      // Both layers are needed: permissions blocks the model's intent,
+      // sandbox blocks the underlying syscall.
+      "denyRead": [
+        "~/.ssh/**",
+        "~/.aws/**",
+        "~/.azure/**",
+        "~/.config/gcloud/**",
+        "~/.kube/**",
+        "~/.gnupg/**",
+        "~/.netrc",
+        "~/.gitconfig",
+        "~/.git-credentials",
+        "~/.config/git/credentials",
+        "~/.npmrc",
+        "~/.cargo/credentials.toml",
+        "~/.docker/config.json",
+        "~/.pypirc",
+        "~/.gem/credentials",
+        "~/.composer/auth.json",
+        "~/.gradle/gradle.properties",
+        "~/.m2/settings.xml",
+        "~/.vault-token",
+        "~/.config/op/**",
+        "~/.config/bw/**",
+        "~/.fly/**",
+        "~/.terraformrc",
+        "~/.terraform.d/**",
+        "~/.pgpass",
+        "~/.my.cnf",
+        "~/.mylogin.cnf",
+        "~/.bash_history",
+        "~/.zsh_history",
+        "~/Library/Keychains/**",
+        "~/Library/Application Support/Google/Chrome/**",
+        "~/Library/Application Support/Microsoft Edge/**",
+        "~/Library/Application Support/Firefox/**",
+        "~/Library/Safari/**",
+        "**/.env*",
+        "**/secrets/**",
+        "**/*credential*",
+        "**/*secret*",
+        "~/Library/Application Support/Bitcoin/**",
+        "~/Library/Ethereum/**",
+        "~/.config/solana/**",
+        "~/.ethereum/**",
+        "~/.bitcoin/**",
+        "**/keystore/**",
+        "**/*.wallet",
+        "**/*.seed",
+        "**/*mnemonic*",
+        "**/*seed_phrase*",
+        "~/Library/Application Support/Ledger/**",
+        "~/Library/Application Support/Trezor/**"
+      ],
+
+      // denyWrite focuses on files that, if modified, could establish
+      // persistence, alter security posture, or compromise future sessions.
+      "denyWrite": [
+        "~/.ssh/**",           // Prevent adding authorized keys
+        "~/.gitconfig",        // Prevent redirect of push targets
+        "~/.git-credentials",  // Prevent credential injection
+        "~/.zshrc",            // Shell profile persistence
+        "~/.zshenv",
+        "~/.bashrc",
+        "~/.bash_profile",
+        "~/.profile",
+        "~/.config/fish/config.fish",
+        "~/.claude/settings.json",  // Claude self-modification boundary
+        "~/.claude/CLAUDE.md",
+        "~/.claude/hooks/**",
+        "~/Library/LaunchAgents/**",    // macOS persistence mechanism
+        "~/Library/Keychains/**",
+        "~/Library/Application Support/Google/Chrome/**",
+        "~/Library/Application Support/Microsoft Edge/**",
+        "~/Library/Application Support/Firefox/**"
+      ]
+    }
+  }
+}
