@@ -8,7 +8,7 @@ Enhanced security configurations for Claude on **MacOS**
 > 
 > restart Claude and Claude CLI
 
-## Default vs. Enhanced Security: What Actually Changes
+## Default vs. Enhanced Claude Security: What Actually Changes
 
 ### Understanding the Default Posture
 
