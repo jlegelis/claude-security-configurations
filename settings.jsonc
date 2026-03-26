@@ -2,7 +2,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // CLAUDE CODE SECURITY CONFIGURATION — ANNOTATED REFERENCE
 // ─────────────────────────────────────────────────────────────────────────────
-// ** This file is for documentation purposes only. **
+// ** This file is for documentation purposes only. ** 
 // Claude Code reads settings.json — NOT this file.
 // Keep this in sync manually when settings.json changes.
 //
