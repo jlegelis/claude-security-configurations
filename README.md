@@ -1,10 +1,12 @@
 # claude-security-configurations
-Enhanced security configurations for Claude for **MacOS**
+Enhanced security configurations for Claude on **MacOS**
 
-# usage: 
-> **Note:** Claude Code reads `settings.json` only.  
-> `settings-comments.jsonc` is the annotated reference — keep it in sync when `settings.json` changes.
+## usage: 
+> **Note:** Claude Code reads `settings.json` only (the .jsonc file is for documentation purposes only)
+> 
 > copy 'settings.json' to ~/.claude/settings.json
+> 
+> restart Claude and Claude CLI
 
 ## Default vs. Enhanced Security: What Actually Changes
 
