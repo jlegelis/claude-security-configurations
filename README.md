@@ -122,27 +122,4 @@ The key insight is that **permission prompts can be satisfied**. A well-crafted 
 | **Force push destroys remote git history** | Possible | Hard-denied |
 | **Unvetted package installed without review** | Possible | Requires explicit approval |
 
-The key changes: bolded scenario names for scannability, expanded the Default column to explain *why* the default is insufficient rather than just saying "model may prompt", and made the Enhanced column consistent in phrasing.
-+--------------------------------------------------+----------------------------------------------------------+------------------------------------------+
-| Scenario                                         | Default                                                  | Enhanced                                 |
-+--------------------------------------------------+----------------------------------------------------------+------------------------------------------+
-| Injected instruction reads SSH key               | Model may prompt — but prompt can be satisfied           | Blocked at both model and OS layer       |
-|                                                  | by injected context                                      |                                          |
-+--------------------------------------------------+----------------------------------------------------------+------------------------------------------+
-| Malicious MCP plugin exfiltrates AWS credentials | Model may prompt — but MCP tool responses                | Blocked at OS layer regardless of        |
-|                                                  | carry implied authority                                  | model state                              |
-+--------------------------------------------------+----------------------------------------------------------+------------------------------------------+
-| Claude modifies its own permission file          | No write protection                                      | Hard-denied at both layers               |
-+--------------------------------------------------+----------------------------------------------------------+------------------------------------------+
-| Injected instruction adds persistence to .zshrc  | No write protection                                      | Hard-denied at both layers               |
-+--------------------------------------------------+----------------------------------------------------------+------------------------------------------+
-| Crypto wallet or seed phrase read                | No path coverage                                         | Blocked at both layers                   |
-+--------------------------------------------------+----------------------------------------------------------+------------------------------------------+
-| Sandbox silently disabled                        | Execution continues unsandboxed without warning          | Hard error — refuses to start            |
-+--------------------------------------------------+----------------------------------------------------------+------------------------------------------+
-| Force push destroys remote git history           | Possible                                                 | Hard-denied                              |
-+--------------------------------------------------+----------------------------------------------------------+------------------------------------------+
-| Unvetted package installed without review        | Possible                                                 | Requires explicit approval               |
-+--------------------------------------------------+----------------------------------------------------------+------------------------------------------+
-
 The default configuration is appropriate for developers working in a trusted environment who understand what they're approving when prompts appear. The enhanced configuration is appropriate for anyone who wants protection that doesn't depend on catching every prompt — including novice users, anyone working with high-value credentials, and anyone who installs MCP servers without deep vetting.
